@@ -24,50 +24,72 @@
 
 ## 在哪里修改？
 
-打开：
+- 板子reset的时候都会重新连接wifi,然后在串口打印对应的ip
 
-```text
-src/main.cpp
-```
+## 串口日志监听（自定义 monitor）
 
-找到：
+- 脚本：`tools/usb_monitor.py`
+- 依赖安装：`pip install pyserial`
+- 默认监听：`/dev/ttyUSB0`，波特率 `115200`
 
-```cpp
-static constexpr uint16_t USB_VID = 0x303A;
-static constexpr uint16_t USB_PID = 0x4008;
-
-static const char* USB_MANUFACTURER = "Generic";
-static const char* USB_PRODUCT      = "USB Input Device";
-static const char* USB_SERIAL       = "HID-GATEWAY-001";
-```
-
-你可以改成自己的合法信息，例如：
-
-```cpp
-static constexpr uint16_t USB_VID = 0x303A;
-static constexpr uint16_t USB_PID = 0x4008;
-
-static const char* USB_MANUFACTURER = "My Keyboard Lab";
-static const char* USB_PRODUCT      = "USB Keyboard Touchpad";
-static const char* USB_SERIAL       = "DEV-0001";
-```
-
-## 为什么不能直接写 Logitech？
-
-Logitech 的 VID/PID 和品牌名属于第三方。冒用它们可能带来商标、合规和安全审计问题。本工程保留了完整的自定义接口，但默认使用通用名称。
-
-## 如果函数编译报错怎么办？
-
-如果出现类似：
-
-```text
-class USB_ has no member named VID
-```
-
-请升级 PlatformIO 的 espressif32 平台，或者使用较新的 Arduino-ESP32 core。推荐先在 PlatformIO 中执行：
+示例：
 
 ```bash
-pio pkg update
+python3 tools/usb_monitor.py
+python3 tools/usb_monitor.py -p /dev/ttyUSB0 -b 115200
+python3 tools/usb_monitor.py -p /dev/ttyUSB0 --no-timestamp
 ```
 
-必要时在 `platformio.ini` 里指定较新的 espressif32 平台版本。
+按下板子 `RESET` 后，可以看到类似：
+
+- `Connecting to WiFi...`
+- `WiFi connected. IP: 192.168.x.x`
+- `TCP HID gateway listening on port 5000`
+
+## Flask 网页测试 HID
+
+新增脚本：`tools/web_hid_tester.py`
+
+安装依赖：
+
+```bash
+pip install flask
+```
+
+启动（允许手机访问）：
+
+```bash
+python3 tools/web_hid_tester.py --host 0.0.0.0 --port 8080
+```
+
+然后在手机浏览器访问：
+
+```text
+http://你的PC局域网IP:8080
+```
+
+页面里填入 ESP32 的 IP（例如 `192.168.43.113`）和端口（默认 `5000`），点击按钮即可发送键盘/鼠标测试指令。
+
+## Flask 网页测试 HID
+
+新增脚本：`tools/web_hid_tester.py`
+
+安装依赖：
+
+```bash
+pip install flask
+```
+
+启动（允许手机访问）：
+
+```bash
+python3 tools/web_hid_tester.py --host 0.0.0.0 --port 8080
+```
+
+然后在手机浏览器访问：
+
+```text
+http://你的PC局域网IP:8080
+```
+
+页面里填入 ESP32 的 IP（例如 `192.168.43.113`）和端口（默认 `5000`），点击按钮即可发送键盘/鼠标测试指令。
